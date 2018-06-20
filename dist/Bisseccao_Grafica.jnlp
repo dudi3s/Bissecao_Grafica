@@ -8,7 +8,7 @@
   </information>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="Bisseccao_Grafica.jar" size="414705" download="eager" />
+    <jar href="Bisseccao_Grafica.jar" size="415609" download="eager" />
     <jar href="lib\mathParser.jar" size="351051" download="eager" />
   </resources>
   <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="Bisseccao_Grafica" >

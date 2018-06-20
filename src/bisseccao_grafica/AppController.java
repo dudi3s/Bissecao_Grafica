@@ -13,6 +13,8 @@ import javafx.event.EventHandler;
 import org.mariuszgromada.math.mxparser.*;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -36,14 +38,17 @@ public class AppController implements Initializable {
     private TableColumn<Result, String> it, a, b, media, fa, fb, sinal, erro;
 
     @FXML
-    private Button calcula;
+    private Button calcular;
 
     @FXML
     private Label raiz;
 
+    @FXML
+    private LineChart<String, Double> grafico;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        monitoraCalcula();
+        monitoraCalcular();
         inicializaTabelView();
     }
 
@@ -68,16 +73,27 @@ public class AppController implements Initializable {
 
     }
 
-    private void monitoraCalcula() {
-        calcula.setOnAction(new EventHandler<ActionEvent>() {
+    private void monitoraCalcular() {
+        calcular.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
+                grafico.getData().clear();
+                grafico.setLegendVisible(false);
                 processo.getItems().clear();
+
+                Function fun = new Function("f", funcao.getText(), "x");
                 String f = funcao.getText();
                 double a = Double.parseDouble(valor_a.getText());
                 double b = Double.parseDouble(valor_b.getText());
                 double prec = Double.parseDouble(precisao.getText());
                 int it = Integer.parseInt(iteracoes.getText());
+
+                final XYChart.Series<String, Double> series = new XYChart.Series<>();
+                for (double x = a; x <= b; x++) {
+                    Expression y = new Expression("f(" + x + ")", fun);
+                    series.getData().add(new XYChart.Data<>(String.valueOf((int) x), y.calculate()));
+                }
+                grafico.getData().add(series);
 
                 double result = metodo_bissecao(a, b, prec, it, f);
                 raiz.setText("Raíz: " + String.valueOf(result));
