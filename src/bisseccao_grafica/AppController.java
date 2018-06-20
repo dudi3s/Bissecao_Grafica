@@ -14,8 +14,11 @@ import org.mariuszgromada.math.mxparser.*;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 
 /**
  *
@@ -24,34 +27,99 @@ import javafx.scene.control.TextField;
 public class AppController implements Initializable {
 
     @FXML
-    private TextField funcao, valor_a, valor_b, erro, iteracoes;
+    private TextField funcao, valor_a, valor_b, precisao, iteracoes;
 
     @FXML
-    private TableView processo;
+    private TableView<Result> processo;
+
+    @FXML
+    private TableColumn<Result, String> it, a, b, media, fa, fb, sinal, erro;
 
     @FXML
     private Button calcula;
 
+    @FXML
+    private Label raiz;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        monitoraCalcula();
+        inicializaTabelView();
+    }
 
-        calcula.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                String f = funcao.getText();
-                String a = valor_a.getText();
-                String b = valor_b.getText();
-                String err = erro.getText();
-                String it = iteracoes.getText();
-                System.out.println(f_x(f, a));
-                System.out.println(f_x(f, b));
+    private void inicializaTabelView() {
 
-            }
-        });
+        it.setCellValueFactory(
+                new PropertyValueFactory<>("iteracao"));
+        a.setCellValueFactory(
+                new PropertyValueFactory<>("a"));
+        b.setCellValueFactory(
+                new PropertyValueFactory<>("b"));
+        media.setCellValueFactory(
+                new PropertyValueFactory<>("media"));
+        fa.setCellValueFactory(
+                new PropertyValueFactory<>("f_a"));
+        fb.setCellValueFactory(
+                new PropertyValueFactory<>("f_b"));
+        sinal.setCellValueFactory(
+                new PropertyValueFactory<>("sinal"));
+        erro.setCellValueFactory(
+                new PropertyValueFactory<>("erro"));
 
     }
 
-    private class Result {
+    private void monitoraCalcula() {
+        calcula.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                processo.getItems().clear();
+                String f = funcao.getText();
+                double a = Double.parseDouble(valor_a.getText());
+                double b = Double.parseDouble(valor_b.getText());
+                double prec = Double.parseDouble(precisao.getText());
+                int it = Integer.parseInt(iteracoes.getText());
+
+                double result = metodo_bissecao(a, b, prec, it, f);
+                raiz.setText("Raíz: " + String.valueOf(result));
+            }
+        });
+    }
+
+    private double metodo_bissecao(double a, double b, double precisao, int iteracoes, String funcao) {
+        Function fun = new Function("f", funcao, "x");
+        double Erro = 1;
+        int Cont = 0;
+        double Raiz = a;
+        double Temp;
+
+        while (Erro > precisao && Cont < iteracoes) {
+            Temp = Raiz;
+            Raiz = (a + b) / 2;
+
+            Erro = Math.abs((Raiz - Temp) / Raiz);
+            Expression eA = new Expression("f(" + a + ")", fun);
+            Expression eB = new Expression("f(" + Raiz + ")", fun);
+
+            double auxA = eA.calculate();
+            double auxB = eB.calculate();
+
+            if (auxA * auxB < 0) {
+                b = Raiz;
+                Result resultado_Iteracao = new Result(String.valueOf(Cont), String.valueOf(a), String.valueOf(b), String.valueOf(Raiz),
+                        String.valueOf(auxA), String.valueOf(auxB), "-", String.valueOf(Erro));
+                processo.getItems().add(resultado_Iteracao);
+            } else {
+                a = Raiz;
+                Result resultado_Iteracao = new Result(String.valueOf(Cont), String.valueOf(a), String.valueOf(b), String.valueOf(Raiz),
+                        String.valueOf(auxA), String.valueOf(auxB), "+", String.valueOf(Erro));
+                processo.getItems().add(resultado_Iteracao);
+            }
+            Cont++;
+        }
+        return Raiz;
+    }
+
+    public static class Result {
 
         private SimpleStringProperty iteracao = new SimpleStringProperty("");
         private SimpleStringProperty a = new SimpleStringProperty("");
@@ -62,12 +130,84 @@ public class AppController implements Initializable {
         private SimpleStringProperty sinal = new SimpleStringProperty("");
         private SimpleStringProperty erro = new SimpleStringProperty("");
 
-    }
+        public Result(String iteracao, String a, String b, String media, String f_a, String f_b, String sinal, String erro) {
+            this.iteracao.set(iteracao);
+            this.a.set(a);
+            this.b.set(b);
+            this.media.set(media);
+            this.f_a.set(f_a);
+            this.f_b.set(f_b);
+            this.sinal.set(sinal);
+            this.erro.set(erro);
+        }
 
-    private double f_x(String funcao, String argumento) {
-        Function fun = new Function("f", funcao, "x");
-        Expression e = new Expression("f(" + argumento + ")", fun);
-        return e.calculate();
-    }
+        public String getIteracao() {
+            return this.iteracao.get();
+        }
 
+        public String getA() {
+            return this.a.get();
+        }
+
+        public String getB() {
+            return this.b.get();
+        }
+
+        public String getMedia() {
+            return this.media.get();
+        }
+
+        public String getF_a() {
+            return this.f_a.get();
+        }
+
+        public String getF_b() {
+            return this.f_b.get();
+        }
+
+        public String getSinal() {
+            return this.sinal.get();
+        }
+
+        public String getErro() {
+            return this.erro.get();
+        }
+
+        public void setIteracao(String iteracao) {
+            this.iteracao.set(iteracao);
+        }
+
+        public void setA(String a) {
+            this.a.set(a);
+        }
+
+        public void setB(String b) {
+            this.b.set(b);
+        }
+
+        public void setMedia(String media) {
+            this.media.set(media);
+        }
+
+        public void setF_a(String f_a) {
+            this.f_a.set(f_a);
+        }
+
+        public void setF_b(String f_b) {
+            this.f_b.set(f_b);
+        }
+
+        public void setSinal(String sinal) {
+            this.sinal.set(sinal);
+        }
+
+        public void setErro(String erro) {
+            this.erro.set(erro);
+        }
+
+        @Override
+        public String toString() {
+            return "Result{" + "iteracao=" + iteracao + ", a=" + a + ", b=" + b + ", media=" + media + ", f_a=" + f_a + ", f_b=" + f_b + ", sinal=" + sinal + ", erro=" + erro + '}';
+        }
+    }
 }
